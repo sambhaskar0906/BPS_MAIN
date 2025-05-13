@@ -22,6 +22,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { fetchStates, fetchCities, clearCities } from '../../../../features/Location/locationSlice';
 import { createBooking } from "../../../../features/quotation/quotationSlice";
 import { fetchStations } from '../../../../features/stations/stationSlice'
+import CustomerSearch from "../../../../Components/CutomerSearch";
 const toPay = ['pay', 'paid', 'none'];
 
 const initialValues = {
@@ -205,68 +206,7 @@ const QuotationForm = () => {
                     </Grid>
                   </Grid>
 
-
-                  <Grid size={{ xs: 12, sm: 9 }}>
-                    <Typography fontWeight="bold">
-                      Customer Name/Number
-                    </Typography>
-                    <TextField
-                      fullWidth
-                      placeholder="Search for customer"
-                      name="customerSearch"
-                      value={values.customerSearch}
-                      onChange={handleChange}
-                      InputProps={{
-                        startAdornment: (
-                          <InputAdornment position="start">
-                            <SearchIcon />
-                          </InputAdornment>
-                        ),
-                      }}
-                    />
-                  </Grid>
-                  <Grid size={{ xs: 12, sm: 3 }} mt={3}>
-                    <Button
-                      fullWidth
-                      variant="contained"
-                      startIcon={<AddIcon />}
-                      type="submit"
-                    >
-                      Register
-                    </Button>
-                  </Grid>
-
-                  {["firstName", "middleName", "lastName"].map((name) => (
-                    <Grid size={{ xs: 12, sm: 4 }} key={name}>
-                      <TextField
-                        fullWidth
-                        label={name.replace(/([A-Z])/g, " $1")}
-                        name={name}
-                        value={values[name]}
-                        onChange={handleChange}
-                      />
-                    </Grid>
-                  ))}
-
-                  <Grid size={{ xs: 12, sm: 6 }}>
-                    <TextField
-                      fullWidth
-                      label="Contact Number"
-                      name="contactNumber"
-                      value={values.contactNumber}
-                      onChange={handleChange}
-                    />
-                  </Grid>
-                  <Grid size={{ xs: 12, sm: 6 }}>
-                    <TextField
-                      fullWidth
-                      label="Email"
-                      name="email"
-                      value={values.email}
-                      onChange={handleChange}
-                      type="email"
-                    />
-                  </Grid>
+                  <CustomerSearch />
 
                   <Grid size={{ xs: 12 }}>
                     <Typography variant="h6">From (Address)</Typography>

@@ -10,7 +10,10 @@ const formatCustomerList = (customers) => {
     customerId: customer.customerId,
     name: `${customer.firstName} ${customer.middleName ? customer.middleName + " " : ""}${customer.lastName}`,
     contactNumber: customer.contactNumber,
-
+    emailId: customer.emailId,
+    firstName: customer.firstName,
+    middleName: customer.middleName,
+    lastName: customer.lastName,
   }));
 };
 
