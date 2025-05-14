@@ -6,14 +6,14 @@ import Quotation from "../model/customerQuotation.model.js";
 import { Customer } from "../model/customer.model.js";
 import manageStation from "../model/manageStation.model.js";
 
- const formatQuotations = (quotations) => {
+const formatQuotations = (quotations) => {
   return quotations.map((q, index) => ({
     "S.No.": index + 1,
     "Booking ID": q.bookingId,
     "Date": q.quotationDate ? q.quotationDate.toISOString().split("T")[0] : "",
     "Name": q.customerId
-    ? `${q.customerId.firstName} ${q.customerId.lastName}`
-    : `${q.firstName || ""} ${q.lastName || ""}`.trim(),
+      ? `${q.customerId.firstName} ${q.customerId.lastName}`
+      : `${q.firstName || ""} ${q.lastName || ""}`.trim(),
     "Pick up": q.startStation?.stationName || q.startStationName || 'N/A',
     "": "",
     "Name (Drop)": q.toCustomerName || "",
@@ -140,8 +140,8 @@ export const getAllQuotations = asyncHandler(async (req, res) => {
   const quotations = await Quotation.find()
     .populate("startStation", "stationName")
     .populate("customerId", "firstName lastName");
-   console.log(quotations)
-    const formatted = formatQuotations(quotations);
+  console.log(quotations)
+  const formatted = formatQuotations(quotations);
 
 
   res.status(200).json(new ApiResponse(200, formatted));
@@ -149,7 +149,8 @@ export const getAllQuotations = asyncHandler(async (req, res) => {
 
 // Get Quotation by ID Controller
 export const getQuotationById = asyncHandler(async (req, res, next) => {
-  const quotation = await Quotation.findById(req.params.id)
+  const { bookingId } = req.params;
+  const quotation = await Quotation.find({ bookingId })
     .populate("startStation", "stationName")
     .populate("customerId", "firstName lastName");
 
@@ -161,8 +162,8 @@ export const getQuotationById = asyncHandler(async (req, res, next) => {
 // Update Quotation Controller
 export const updateQuotation = asyncHandler(async (req, res, next) => {
   const { bookingId } = req.params;
-  const updatedQuotation = await Quotation.findOneAndUpdate({bookingId},{new:true});
-  
+  const updatedQuotation = await Quotation.findOneAndUpdate({ bookingId }, { new: true });
+
   if (!updatedQuotation) return next(new ApiError(404, "Quotation not found"));
 
   res.status(200).json(new ApiResponse(200, updatedQuotation, "Quotation updated successfully"));
@@ -186,8 +187,10 @@ export const deleteQuotation = asyncHandler(async (req, res, next) => {
 
 // Get Total Booking Requests Controller
 export const getTotalBookingRequests = asyncHandler(async (req, res) => {
-  const total = await Quotation.countDocuments({activeDelivery: false, 
-    totalCancelled: 0 }); 
+  const total = await Quotation.countDocuments({
+    activeDelivery: false,
+    totalCancelled: 0
+  });
   res.status(200).json(new ApiResponse(200, { totalBookingRequests: total }));
 });
 
@@ -239,12 +242,12 @@ export const searchQuotationByBookingId = asyncHandler(async (req, res, next) =>
   res.status(200).json(new ApiResponse(200, quotation));
 });
 
-export const getActiveList = asyncHandler(async(req,res)=>{
+export const getActiveList = asyncHandler(async (req, res) => {
   const activeQuotations = await Quotation.find({ activeDelivery: true })
     .populate("startStation", "stationName")
     .populate("customerId", "firstName lastName");
 
-    const formatted = formatQuotations(activeQuotations);
+  const formatted = formatQuotations(activeQuotations);
 
   res.status(200).json(new ApiResponse(200, {
     totalActiveDeliveries: activeQuotations.length,
@@ -252,7 +255,7 @@ export const getActiveList = asyncHandler(async(req,res)=>{
   }));
 });
 
-export const getCancelledList = asyncHandler(async(req,res)=>{
+export const getCancelledList = asyncHandler(async (req, res) => {
   const cancelledQuotations = await Quotation.find({ totalCancelled: { $gt: 0 } })
     .populate("startStation", "stationName")
     .populate("customerId", "firstName lastName");
@@ -276,22 +279,22 @@ export const getQuotationRevenueList = async (req, res) => {
     const totalRevenue = quotation.reduce((sum, b) => sum + b.grandTotal, 0);
 
     const data = quotation.map((b, i) => ({
-      SNo:       i + 1,
+      SNo: i + 1,
       bookingId: b.bookingId,
-      date:      b.quotationDate,
-      pickup:    b.startStation.stationName,
-      drop:      b.toCity,
-      revenue:   b.grandTotal.toFixed(2),
+      date: b.quotationDate,
+      pickup: b.startStation.stationName,
+      drop: b.toCity,
+      revenue: b.grandTotal.toFixed(2),
       action: {
-        view:   `/quotation/${b.bookingId}`,
-        edit:   `/quotation/edit/${b.bookingId}`,
+        view: `/quotation/${b.bookingId}`,
+        edit: `/quotation/edit/${b.bookingId}`,
         delete: `/quotation/delete/${b.bookingId}`
       }
     }));
 
     res.json({
       totalRevenue: totalRevenue.toFixed(2),
-      count:        data.length,
+      count: data.length,
       data
     });
   } catch (err) {
@@ -334,28 +337,28 @@ export const updateQuotationStatus = asyncHandler(async (req, res, next) => {
 // Get List of Booking Requests (Not active, not cancelled)
 export const RequestBookingList = asyncHandler(async (req, res) => {
   // Fetch quotations that are not active and not cancelled
-  const quotations = await Quotation.find({ 
-    activeDelivery: false, 
-    totalCancelled: 0 
+  const quotations = await Quotation.find({
+    activeDelivery: false,
+    totalCancelled: 0
   })
     .populate("startStation", "stationName")
     .populate("customerId", "firstName lastName");
 
- 
-  const formatted = formatQuotations(quotations);  
+
+  const formatted = formatQuotations(quotations);
 
   // Return the formatted list
-  res.status(200).json(new ApiResponse(200, { 
+  res.status(200).json(new ApiResponse(200, {
     totalNonActiveNonCancelled: quotations.length,
-    deliveries: formatted 
+    deliveries: formatted
   }));
 });
 
 const transporter = nodemailer.createTransport({
-  service: 'gmail',  
+  service: 'gmail',
   auth: {
-    user: process.env.gmail, 
-    pass: process.env.app_pass   
+    user: process.env.gmail,
+    pass: process.env.app_pass
   }
 });
 
@@ -370,22 +373,22 @@ export const sendBookingEmail = async (req, res) => {
       return res.status(404).json({ message: 'Quotation not found' });
     }
 
-    const { 
-      firstName, 
-      lastName, 
-      email, 
-      fromAddress, 
-      fromCity, 
-      fromState, 
+    const {
+      firstName,
+      lastName,
+      email,
+      fromAddress,
+      fromCity,
+      fromState,
       fromPincode,
-      toAddress, 
-      toState, 
-      toCity, 
-      toPincode, 
-      productDetails, 
-      grandTotal 
+      toAddress,
+      toState,
+      toCity,
+      toPincode,
+      productDetails,
+      grandTotal
     } = booking;
-    
+
     let productDetailsText = '';
     productDetails.forEach(product => {
       productDetailsText += `\nName: ${product.name}, Weight: ${product.weight}, Quantity: ${product.quantity}, Price: ${product.price}`;
@@ -411,7 +414,7 @@ export const sendBookingEmail = async (req, res) => {
         <p>Best regards,<br>BharatParcel Team</p>
       `
     };
-    
+
     transporter.sendMail(mailOptions, (error, info) => {
       if (error) {
         console.error('Error sending email:', error);

@@ -22,7 +22,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { fetchStates, fetchCities, clearCities } from '../../../../features/Location/locationSlice';
 import { createBooking } from "../../../../features/quotation/quotationSlice";
 import { fetchStations } from '../../../../features/stations/stationSlice'
-import CustomerSearch from "../../../../Components/CutomerSearch";
+import CustomerSearch from "../../../../Components/CustomerSearch";
 const toPay = ['pay', 'paid', 'none'];
 
 const initialValues = {
@@ -57,12 +57,8 @@ const initialValues = {
   ],
 
   addComment: "",
-
-
   billTotal: "",
-
   stax: "",
-
   grandTotal: "",
 };
 

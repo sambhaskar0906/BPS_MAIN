@@ -92,7 +92,7 @@ const CustomerSearch = () => {
     };
 
     const handleRegister = () => {
-        navigate('/customerForm'); 
+        navigate('/customerForm');
     };
 
 

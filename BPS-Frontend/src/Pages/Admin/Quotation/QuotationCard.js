@@ -37,8 +37,9 @@ import { useSelector, useDispatch } from "react-redux";
 import {
   fetchBookingRequest,
   fetchActiveBooking,
-  fetchCancelledBooking,
+  fetchCancelledBooking, deleteBooking
 } from "../../../features/quotation/quotationSlice";
+import VisibilityIcon from '@mui/icons-material/Visibility';
 
 function descendingComparator(a, b, orderBy) {
   if (b[orderBy] < a[orderBy]) return -1;
@@ -89,7 +90,7 @@ const QuotationCard = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedList, setSelectedList] = useState("request");
 
-  const { list: bookingList, requestCount, activeDeliveriesCount, cancelledDeliveriesCount } =
+  const { list: bookingList = [], requestCount, activeDeliveriesCount, cancelledDeliveriesCount } =
     useSelector((state) => state.quotations);
 
   useEffect(() => {
@@ -134,10 +135,10 @@ const QuotationCard = () => {
     setSearchTerm(event.target.value);
     setPage(0);
   };
- 
+
 
   const filteredRows = Array.isArray(bookingList)
-  ? bookingList.filter((row) => {
+    ? bookingList.filter((row) => {
       return (
         row?.senderName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         row?.receiverName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -145,7 +146,7 @@ const QuotationCard = () => {
         row?.bookingId?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     })
-  : [];
+    : [];
 
   const emptyRows = Math.max(0, (1 + page) * rowsPerPage - filteredRows.length);
 
@@ -157,6 +158,7 @@ const QuotationCard = () => {
       subtitle: "Requests",
       duration: "0% (30 Days)",
       icon: <BookOnlineIcon fontSize="large" />,
+      type: "request",
     },
     {
       id: "active",
@@ -165,6 +167,7 @@ const QuotationCard = () => {
       subtitle: "Deliveries",
       duration: "100% (30 Days)",
       icon: <LocalShippingIcon fontSize="large" />,
+      type: "active",
     },
     {
       id: "cancelled",
@@ -172,6 +175,7 @@ const QuotationCard = () => {
       value: cancelledDeliveriesCount,
       duration: "0% (30 Days)",
       icon: <CancelScheduleSendIcon fontSize="large" />,
+      type: "cancelled"
     },
     {
       id: "revenue",
@@ -182,6 +186,18 @@ const QuotationCard = () => {
       icon: <AccountBalanceWalletIcon fontSize="large" />,
     },
   ];
+
+
+  const handleDelete = (bookingId) => {
+    if (window.confirm("Are you sure you want to delete this Quotation?")) {
+      dispatch(deleteBooking(bookingId));
+      dispatch(fetchBookingRequest());
+    }
+  };
+
+  const handleView = (bookingId) => navigate(`/viewquotation/${bookingId}`);
+  const handleUpdate = (bookingId) => navigate(`/updatequotation/${bookingId}`);
+
 
   return (
     <Box sx={{ p: 2 }}>
@@ -198,7 +214,7 @@ const QuotationCard = () => {
         {cardData.map((card) => (
           <Grid item key={card.id} sx={{ minWidth: 220, flex: 1, display: "flex", borderRadius: 2 }}>
             <Card
-              onClick={() => handleCardClick(card.id)}
+              onClick={() => handleCardClick(card.type)}
               sx={{
                 flex: 1,
                 cursor: "pointer",
@@ -297,28 +313,32 @@ const QuotationCard = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {stableSort(filteredRows, getComparator(order, orderBy))
+              {stableSort(bookingList, getComparator(order, orderBy))
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map((row, index) => (
                   <TableRow key={row._id || index} hover>
                     <TableCell>{page * rowsPerPage + index + 1}</TableCell>
-                    <TableCell>{row.bookingId}</TableCell>
-                    <TableCell>{row.quotationDate?.slice(0, 10)}</TableCell>
-                    <TableCell>{row.senderName}</TableCell>
-                    <TableCell>{row.pickupCity}</TableCell>
-                    <TableCell>{row.receiverName}</TableCell>
-                    <TableCell>{row.dropCity}</TableCell>
-                    <TableCell>{row.contact}</TableCell>
+                    <TableCell>{row.order}</TableCell>
+                    <TableCell>{row.Date}</TableCell>
+                    {/* <TableCell>{row.quotationDate?.slice(0, 10)}</TableCell> */}
+                    <TableCell>{row.Name}</TableCell>
+                    <TableCell>{row["Pick up"]}</TableCell>
+                    {/* <TableCell>{row.receiverName}</TableCell> */}
+                    <TableCell>{row["Name (Drop)"]}</TableCell>
+                    <TableCell>{row.Drop}</TableCell>
+                    <TableCell>{row.Contact}</TableCell>
                     <TableCell>
                       <Box sx={{ display: "flex", gap: 1 }}>
-                        <IconButton size="small" color="primary">
+                        <IconButton size="small" color="primary" onClick={() => handleView(row['Booking ID'])} title="View">
+                          <VisibilityIcon fontSize="small" />
+                        </IconButton>
+                        <IconButton size="small" color="primary" onClick={() => handleUpdate(row['Booking ID'])}>
                           <EditIcon fontSize="small" />
                         </IconButton>
-                        <IconButton size="small" color="error">
+                        <IconButton size="small" color="error" onClick={() => {
+                          handleDelete(row['Booking ID']);
+                        }}>
                           <DeleteIcon fontSize="small" />
-                        </IconButton>
-                        <IconButton size="small" color="default">
-                          <MoreVertIcon fontSize="small" />
                         </IconButton>
                       </Box>
                     </TableCell>

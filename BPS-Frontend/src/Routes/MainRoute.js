@@ -26,6 +26,9 @@ import BookingForm from '../Pages/Admin/Booking/Form/BookingForm';
 import QuotationForm from '../Pages/Admin/Quotation/Form/QuotationForm'
 import CustomerUpdate from '../Pages/Admin/Customer/Form/CustomerUpdate';
 import VehicleForm from '../Pages/Admin/Vehicle/Form/VehicleForm';
+import BookingView from '../Pages/Admin/Booking/Form/BookingView';
+import ViewQuotation from '../Pages/Admin/Quotation/Form/ViewQuotation';
+import EditQuotations from '../Pages/Admin/Quotation/Form/EditQuotations';
 
 const MainRoute = () => {
     const isAuthenticated = true; // Replace with real auth check
@@ -71,10 +74,13 @@ const MainRoute = () => {
                 {/*Booking Routing */}
                 <Route path='/booking' element={<BookingCard />} />
                 <Route path='/booking/new' element={<BookingForm />} />
+                <Route path='/bookingview/:bookingId' element={<BookingView />} />
 
                 {/* Quotation routing */}
                 <Route path='/quotation' element={<QuotationCard />} />
                 <Route path='/quotationform' element={<QuotationForm />} />
+                <Route path="/viewquotation/:bookingId" element={<ViewQuotation />} />
+                <Route path="/updatequotation/:bookingId" element={<EditQuotations />} />
 
             </Routes>
         </DashboardLayout>
