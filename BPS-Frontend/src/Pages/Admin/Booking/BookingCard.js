@@ -37,6 +37,7 @@ import {
   Visibility as VisibilityIcon,
 } from "@mui/icons-material";
 import AddIcon from "@mui/icons-material/Add";
+import SendIcon from '@mui/icons-material/Send';
 import { useDispatch, useSelector } from 'react-redux';
 import { bookingRequestCount, activeBookingCount, cancelledBookingCount, fetchBookingsByType, deleteBooking } from '../../../features/booking/bookingSlice'
 
@@ -402,6 +403,9 @@ const BookingCard = () => {
                           title="Delete"
                         >
                           <DeleteIcon fontSize="small" />
+                        </IconButton>
+                        <IconButton>
+                          <SendIcon />
                         </IconButton>
                       </Box>
                     </TableCell>

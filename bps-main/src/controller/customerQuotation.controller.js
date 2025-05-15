@@ -133,8 +133,6 @@ export const createQuotation = asyncHandler(async (req, res, next) => {
 
 
 
-
-
 // Get All Quotations Controller
 export const getAllQuotations = asyncHandler(async (req, res) => {
   const quotations = await Quotation.find()
@@ -162,7 +160,8 @@ export const getQuotationById = asyncHandler(async (req, res, next) => {
 // Update Quotation Controller
 export const updateQuotation = asyncHandler(async (req, res, next) => {
   const { bookingId } = req.params;
-  const updatedQuotation = await Quotation.findOneAndUpdate({ bookingId }, { new: true });
+  const updateData = req.body;
+  const updatedQuotation = await Quotation.findOneAndUpdate({ bookingId }, updateData, { new: true });
 
   if (!updatedQuotation) return next(new ApiError(404, "Quotation not found"));
 

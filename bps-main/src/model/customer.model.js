@@ -46,7 +46,7 @@ const customerSchema = new mongoose.Schema({
         type: String,
         required: true,
         unique: true
-    },
+    },  
     idProofPhoto: {
         type: String,
         required: true

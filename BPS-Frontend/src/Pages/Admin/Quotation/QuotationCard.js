@@ -40,6 +40,7 @@ import {
   fetchCancelledBooking, deleteBooking
 } from "../../../features/quotation/quotationSlice";
 import VisibilityIcon from '@mui/icons-material/Visibility';
+import SendIcon from '@mui/icons-material/Send';
 
 function descendingComparator(a, b, orderBy) {
   if (b[orderBy] < a[orderBy]) return -1;
@@ -313,7 +314,7 @@ const QuotationCard = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {stableSort(bookingList, getComparator(order, orderBy))
+              {Array.isArray(bookingList) && stableSort(bookingList, getComparator(order, orderBy))
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map((row, index) => (
                   <TableRow key={row._id || index} hover>
@@ -339,6 +340,9 @@ const QuotationCard = () => {
                           handleDelete(row['Booking ID']);
                         }}>
                           <DeleteIcon fontSize="small" />
+                        </IconButton>
+                        <IconButton>
+                          <SendIcon />
                         </IconButton>
                       </Box>
                     </TableCell>

@@ -14,7 +14,6 @@ import {
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
-import SearchIcon from "@mui/icons-material/Search";
 import IconButton from "@mui/material/IconButton";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
@@ -23,7 +22,6 @@ import { fetchStates, fetchCities, clearCities } from '../../../../features/Loca
 import { createBooking } from "../../../../features/quotation/quotationSlice";
 import { fetchStations } from '../../../../features/stations/stationSlice'
 import CustomerSearch from "../../../../Components/CustomerSearch";
-const toPay = ['pay', 'paid', 'none'];
 
 const initialValues = {
   firstName: "",

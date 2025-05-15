@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Formik, Form, Field, FieldArray } from "formik";
 import {
     Box,
@@ -10,95 +10,127 @@ import {
     InputAdornment,
     Snackbar,
     Alert,
+    CircularProgress,
 } from "@mui/material";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import SearchIcon from "@mui/icons-material/Search";
 import AddIcon from "@mui/icons-material/Add";
+import { useNavigate, useParams } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { viewBookingById, updateBookingById } from "../../../../features/quotation/quotationSlice";
 
-const stationOptions = ["Station A", "Station B", "Station C"];
-const states = ["State A", "State B", "State C"];
-const cities = ["City A", "City B", "City C"];
-const payOptions = ["None", "To Pay", "Paid"];
-
-// Function to generate random data
-const generateRandomData = () => {
-    const randomDate = () => {
-        const start = new Date();
-        const end = new Date();
-        end.setDate(end.getDate() + 30);
-        return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
-    };
-
-    const randomItem = () => ({
-        name: `Product ${Math.floor(Math.random() * 100)}`,
-        quantity: Math.floor(Math.random() * 10) + 1,
-        price: (Math.random() * 1000).toFixed(2),
-        weight: (Math.random() * 50).toFixed(2),
-        toPayPaid: payOptions[Math.floor(Math.random() * payOptions.length)],
-    });
-
-    return {
-        firstName: ["John", "Jane", "Robert", "Emily"][Math.floor(Math.random() * 4)],
-        lastName: ["Doe", "Smith", "Johnson", "Williams"][Math.floor(Math.random() * 4)],
-        startStationName: stationOptions[Math.floor(Math.random() * stationOptions.length)],
-        endStation: stationOptions[Math.floor(Math.random() * stationOptions.length)],
-        locality: ["Main St", "Park Ave", "Broadway", "5th Ave"][Math.floor(Math.random() * 4)],
-        quotationDate: randomDate(),
-        proposedDeliveryDate: randomDate(),
-        fromCustomerName: `Customer ${Math.floor(Math.random() * 100)}`,
-        fromAddress: `${Math.floor(Math.random() * 1000)} ${["Main St", "Oak St", "Pine St"][Math.floor(Math.random() * 3)]}`,
-        fromState: states[Math.floor(Math.random() * states.length)],
-        fromCity: cities[Math.floor(Math.random() * cities.length)],
-        fromPincode: Math.floor(100000 + Math.random() * 900000).toString(),
-        toCustomerName: `Customer ${Math.floor(Math.random() * 100)}`,
-        toAddress: `${Math.floor(Math.random() * 1000)} ${["Main St", "Oak St", "Pine St"][Math.floor(Math.random() * 3)]}`,
-        toState: states[Math.floor(Math.random() * states.length)],
-        toCity: cities[Math.floor(Math.random() * cities.length)],
-        toPincode: Math.floor(100000 + Math.random() * 900000).toString(),
-        amount: (Math.random() * 1000).toFixed(2),
-        freight: (Math.random() * 500).toFixed(2),
-        sgst: (Math.random() * 10).toFixed(2),
-        sTax: (Math.random() * 5).toFixed(2),
-        additionalCmt: ["Fragile", "Handle with care", "Urgent delivery"][Math.floor(Math.random() * 3)],
-        productDetails: Array.from({ length: Math.floor(Math.random() * 3) + 1 }, randomItem),
-        addComment: ["Special instructions here", "Contact before delivery", ""][Math.floor(Math.random() * 3)],
-        ins_vpp: (Math.random() * 200).toFixed(2),
-        billTotal: (Math.random() * 2000).toFixed(2),
-        cgst: (Math.random() * 10).toFixed(2),
-        igst: (Math.random() * 10).toFixed(2),
-        grandTotal: (Math.random() * 2500).toFixed(2),
-    };
+const initialValues = {
+    firstName: "",
+    lastName: "",
+    startStationName: "",
+    endStation: "",
+    locality: "",
+    quotationDate: new Date(),
+    proposedDeliveryDate: new Date(),
+    fromCustomerName: "",
+    fromAddress: "",
+    fromState: "",
+    fromCity: "",
+    fromPincode: "",
+    toCustomerName: "",
+    toAddress: "",
+    toState: "",
+    toCity: "",
+    toPincode: "",
+    amount: "",
+    sTax: "",
+    additionalCmt: "",
+    productDetails: [{
+        name: "",
+        quantity: "",
+        price: "",
+        weight: "",
+        toPayPaid: "None",
+    }],
+    addComment: "",
+    ins_vpp: "",
+    billTotal: "",
+    grandTotal: "",
 };
 
-const initialValues = generateRandomData();
-
 const EditQuotationForm = () => {
+    const navigate = useNavigate();
+    const { bookingId } = useParams();
+    const dispatch = useDispatch();
+    const { loading, error, viewedBooking } = useSelector(state => state.quotations);
     const [snackbar, setSnackbar] = React.useState({
         open: false,
         message: "",
         severity: "success",
     });
 
+    useEffect(() => {
+        if (bookingId) {
+            dispatch(viewBookingById(bookingId));
+        }
+    }, [bookingId, dispatch]);
+
+    useEffect(() => {
+        console.log("Viewed Booking Data:", viewedBooking);
+    }, [viewedBooking]);
+
+    useEffect(() => {
+        if (error) {
+            setSnackbar({
+                open: true,
+                message: error,
+                severity: "error",
+            });
+        }
+    }, [error]);
+
     const handleCloseSnackbar = () => {
         setSnackbar({ ...snackbar, open: false });
     };
 
+    if (!viewedBooking && bookingId) {
+        return <CircularProgress />;
+    }
+
+
     return (
         <LocalizationProvider dateAdapter={AdapterDateFns}>
             <Formik
-                initialValues={initialValues}
-                onSubmit={(values) => {
-                    console.log("Form Submitted:", values);
-                    setSnackbar({
-                        open: true,
-                        message: "Quotation updated successfully!",
-                        severity: "success",
-                    });
+                initialValues={{
+                    ...initialValues,
+                    ...viewedBooking,
+                    quotationDate: viewedBooking?.quotationDate ? new Date(viewedBooking.quotationDate) : new Date(),
+                    proposedDeliveryDate: viewedBooking?.proposedDeliveryDate ? new Date(viewedBooking.proposedDeliveryDate) : new Date(),
+                }}
+                enableReinitialize
+                onSubmit={(values, { setSubmitting }) => {
+                    dispatch(updateBookingById({ bookingId, data: values }))
+                        .unwrap()
+                        .then(() => {
+                            setSnackbar({
+                                open: true,
+                                message: "Quotation updated successfully!",
+                                severity: "success",
+                            });
+                            setTimeout(() => {
+                                navigate("/quotation");
+                            }, 1000);
+                        })
+                        .catch((err) => {
+                            setSnackbar({
+                                open: true,
+                                message: err || "Failed to update quotation",
+                                severity: "error",
+                            });
+                        })
+                        .finally(() => {
+                            setSubmitting(false);
+                        });
                 }}
             >
-                {({ values, handleChange, setFieldValue }) => {
+                {({ values, handleChange, setFieldValue, isSubmitting }) => {
                     const handleUpdate = (index) => {
                         const item = values.productDetails[index];
 
@@ -130,34 +162,22 @@ const EditQuotationForm = () => {
                                 <Grid container spacing={2}>
                                     <Grid size={{ xs: 12, sm: 6 }}>
                                         <TextField
-                                            select
                                             fullWidth
                                             label="Start Station"
                                             name="startStationName"
                                             value={values.startStationName}
                                             onChange={handleChange}
                                         >
-                                            {stationOptions.map((s) => (
-                                                <MenuItem key={s} value={s}>
-                                                    {s}
-                                                </MenuItem>
-                                            ))}
                                         </TextField>
                                     </Grid>
                                     <Grid size={{ xs: 12, sm: 6 }}>
                                         <TextField
-                                            select
                                             fullWidth
                                             label="Destination Station"
                                             name="endStation"
                                             value={values.endStation}
                                             onChange={handleChange}
                                         >
-                                            {stationOptions.map((s) => (
-                                                <MenuItem key={s} value={s}>
-                                                    {s}
-                                                </MenuItem>
-                                            ))}
                                         </TextField>
                                     </Grid>
 
@@ -235,8 +255,8 @@ const EditQuotationForm = () => {
                                         <TextField
                                             fullWidth
                                             label="Contact Number"
-                                            name="contactNumber"
-                                            value={values.contactNumber || ""}
+                                            name="mobile"
+                                            value={values.mobile || ""}
                                             onChange={handleChange}
                                         />
                                     </Grid>
@@ -266,15 +286,6 @@ const EditQuotationForm = () => {
                                     <Grid size={{ xs: 12, sm: 6 }}>
                                         <TextField
                                             fullWidth
-                                            label="GST Number"
-                                            name="fromGST"
-                                            value={values.fromGST || ""}
-                                            onChange={handleChange}
-                                        />
-                                    </Grid>
-                                    <Grid size={{ xs: 12, sm: 6 }}>
-                                        <TextField
-                                            fullWidth
                                             label="Locality / Street"
                                             name="fromAddress"
                                             value={values.fromAddress}
@@ -283,34 +294,22 @@ const EditQuotationForm = () => {
                                     </Grid>
                                     <Grid size={{ xs: 12, sm: 6 }}>
                                         <TextField
-                                            select
                                             fullWidth
                                             label="State"
                                             name="fromState"
                                             value={values.fromState}
                                             onChange={handleChange}
                                         >
-                                            {states.map((s) => (
-                                                <MenuItem key={s} value={s}>
-                                                    {s}
-                                                </MenuItem>
-                                            ))}
                                         </TextField>
                                     </Grid>
                                     <Grid size={{ xs: 12, sm: 6 }}>
                                         <TextField
-                                            select
                                             fullWidth
                                             label="City"
                                             name="fromCity"
                                             value={values.fromCity}
                                             onChange={handleChange}
                                         >
-                                            {cities.map((c) => (
-                                                <MenuItem key={c} value={c}>
-                                                    {c}
-                                                </MenuItem>
-                                            ))}
                                         </TextField>
                                     </Grid>
                                     <Grid size={{ xs: 12, sm: 6 }}>
@@ -338,15 +337,6 @@ const EditQuotationForm = () => {
                                     <Grid size={{ xs: 12, sm: 6 }}>
                                         <TextField
                                             fullWidth
-                                            label="GST Number"
-                                            name="toGST"
-                                            value={values.toGST || ""}
-                                            onChange={handleChange}
-                                        />
-                                    </Grid>
-                                    <Grid size={{ xs: 12, sm: 6 }}>
-                                        <TextField
-                                            fullWidth
                                             label="Locality / Street"
                                             name="toAddress"
                                             value={values.toAddress}
@@ -355,34 +345,22 @@ const EditQuotationForm = () => {
                                     </Grid>
                                     <Grid size={{ xs: 12, sm: 6 }}>
                                         <TextField
-                                            select
                                             fullWidth
                                             label="State"
                                             name="toState"
                                             value={values.toState}
                                             onChange={handleChange}
                                         >
-                                            {states.map((s) => (
-                                                <MenuItem key={s} value={s}>
-                                                    {s}
-                                                </MenuItem>
-                                            ))}
                                         </TextField>
                                     </Grid>
                                     <Grid size={{ xs: 12, sm: 6 }}>
                                         <TextField
-                                            select
                                             fullWidth
                                             label="City"
                                             name="toCity"
                                             value={values.toCity}
                                             onChange={handleChange}
                                         >
-                                            {cities.map((c) => (
-                                                <MenuItem key={c} value={c}>
-                                                    {c}
-                                                </MenuItem>
-                                            ))}
                                         </TextField>
                                     </Grid>
                                     <Grid size={{ xs: 12, sm: 6 }}>
@@ -466,11 +444,6 @@ const EditQuotationForm = () => {
                                                                 value={item.toPayPaid}
                                                                 onChange={handleChange}
                                                             >
-                                                                {payOptions.map((p) => (
-                                                                    <MenuItem key={p} value={p}>
-                                                                        {p}
-                                                                    </MenuItem>
-                                                                ))}
                                                             </TextField>
                                                         </Grid>
                                                         <Grid size={{ xs: 3, sm: 1.5, md: 1 }}>
@@ -535,10 +508,7 @@ const EditQuotationForm = () => {
                                     <Grid size={{ xs: 12, md: 3 }}>
                                         <Grid container spacing={2}>
                                             {[
-                                                ["freight", "Freight"],
-                                                ["sgst", "SGST"],
-                                                ["cgst", "CGST"],
-                                                ["igst", "IGST"],
+                                                ["sTax", "sTax"],
                                                 ["grandTotal", "Grand Total"],
                                             ].map(([name, label]) => (
                                                 <Grid size={{ xs: 6 }} key={name}>
@@ -567,8 +537,9 @@ const EditQuotationForm = () => {
                                             variant="contained"
                                             color="primary"
                                             sx={{ mt: 2 }}
+                                            disabled={isSubmitting}
                                         >
-                                            Update Quotation
+                                            {isSubmitting ? <CircularProgress size={24} /> : "Update Quotation"}
                                         </Button>
                                     </Grid>
                                 </Grid>
@@ -576,18 +547,15 @@ const EditQuotationForm = () => {
 
                             <Snackbar
                                 open={snackbar.open}
-                                autoHideDuration={6000}
+                                autoHideDuration={4000}
                                 onClose={handleCloseSnackbar}
                                 anchorOrigin={{ vertical: "top", horizontal: "center" }}
                             >
-                                <Alert
-                                    onClose={handleCloseSnackbar}
-                                    severity={snackbar.severity}
-                                    sx={{ width: "100%" }}
-                                >
+                                <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: "100%" }}>
                                     {snackbar.message}
                                 </Alert>
                             </Snackbar>
+
                         </Form>
                     );
                 }}

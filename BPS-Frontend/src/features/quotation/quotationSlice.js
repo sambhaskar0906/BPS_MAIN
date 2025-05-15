@@ -38,7 +38,7 @@ export const fetchBookingRequest = createAsyncThunk(
   async (_, thunkApi) => {
     try {
       const res = await axios.get(`${BASE_URL}/booking-request-list`);
-      return res.data.data.deliveries; // ✅ assuming this is the actual array
+      return res.data.data.deliveries;
     } catch (error) {
       console.error("Error in fetchBookingRequest:", error);
       return thunkApi.rejectWithValue(error.response?.data?.message || "Error fetching bookings");
@@ -87,6 +87,22 @@ export const viewBookingById = createAsyncThunk(
 
   }
 )
+
+export const updateBookingById = createAsyncThunk(
+  'booking/update',
+  async ({ bookingId, data }, thunkApi) => {
+    try {
+      const res = await axios.put(`${BASE_URL}/${bookingId}`, data);
+      return res?.data?.data;
+    } catch (err) {
+      return thunkApi.rejectWithValue(
+        err.response?.data?.message || 'Failed to update booking'
+      );
+    }
+  }
+);
+
+
 const initialState = {
   list: [],
   requestCount: 0,
@@ -219,8 +235,21 @@ const quotationSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
+      .addCase(updateBookingById.pending, (state) => {
+        state.loading = true;
+        state.error = null
+      })
+      .addCase(updateBookingById.fulfilled, (state, action) => {
+        state.status = 'succeeded'
+        state.error = null
+        const updatedBooking = action.payload
+        const index = state.list.findIndex(booking => booking.bookingId === updatedBooking.bookingId);
+        if (index !== -1) {
+          state.list[index] = updatedBooking;
+        }
 
-      ;
+        state.form = initialState.form
+      })
   }
 })
 export const { setFormField, resetForm, addBooking, setBooking, clearViewedBooking } = quotationSlice.actions;
